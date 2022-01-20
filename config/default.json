@@ -1,0 +1,6 @@
+{
+    "dbUser": "phantomdc",
+    "dbPassword": "password32",
+    "backPort": 5000,
+    "jwtSecret": "qhWqD6XNs6uIbbNKKNJtMQqQJCAdyPXhLlOMUXDp"
+}
