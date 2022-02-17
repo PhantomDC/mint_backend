@@ -5,6 +5,7 @@ export const useHttp = () => {
 
 	const request = useCallback(async (url, body = null, method = 'GET', headers = {}) => {
 		const token = localStorage.getItem('token');
+		const baseURL = 'http://84.38.182.180:3000';
 
 		headers['Content-Type'] = 'application/json';
 		headers['Authorization'] = `Bearer ${token}`;
@@ -15,7 +16,7 @@ export const useHttp = () => {
 
 		try {
 			setIsLoading(true);
-			const response = await fetch(url, { body, headers, method });
+			const response = await fetch(`${baseURL}${url}`, { body, headers, method });
 			const data = await response.json();
 
 			return {

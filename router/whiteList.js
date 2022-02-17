@@ -1,6 +1,7 @@
 const config = require('config');
 const { Router } = require('express');
 const jwt = require('jsonwebtoken');
+const Params = require('../shemas/params.schema');
 const Users = require('../shemas/users.schema');
 const WhiteList = require('../shemas/whiteList.schema');
 
@@ -36,8 +37,9 @@ whiteListRouter.post('/has', async (req, res) => {
 		if (isAlive) {
 			if (verified.walletId === walletId) {
 				const candidate = await WhiteList.findOne({ walletId, isActive: true }).exec();
+				const preSaleTokens = await Params.findOne({ paramName: 'preSaleCountMints' }).exec();
 				if (candidate) {
-					return res.json({ walletId, status: 'ok' });
+					return res.json({ walletId, status: 'ok', presaleTokens: Number(preSaleTokens.paramValue) });
 				}
 
 				return res.status(404).json({ status: 'error', message: 'wallet is not in white list' });
@@ -55,7 +57,8 @@ whiteListRouter.post('/has', async (req, res) => {
 whiteListRouter.post('/add', async (req, res) => {
 	const token = req.headers.authorization.split('Bearer ')[1].trim();
 	const jwtSecret = config.get('jwtSecret');
-	const { walletId } = req.body;
+	const { walletId: walletIds } = req.body;
+	const models = [];
 
 	try {
 		const verified = jwt.verify(token, jwtSecret);
@@ -64,21 +67,30 @@ whiteListRouter.post('/add', async (req, res) => {
 		if (isAlive) {
 			const user = await Users.findOne({ _id: verified.id }).exec();
 
-			if (user.mode === 'admin' && user.active && walletId) {
-				const checkWalletId = await WhiteList.findOne({ walletId }).exec();
-				if (!checkWalletId) {
-					const newWallet = new WhiteList({ walletId, isActive: true });
-					const response = await newWallet.save();
-					return res.json({
-						id: response._id,
-						walletId: response.walletId,
-						isActive: response.isActive,
-						updatedAt: response.updatedAt,
-					});
+			if (user.mode === 'admin' && user.active && walletIds.length) {
+				for (let i = 0; i < walletIds.length; i++) {
+					const walletId = walletIds[i];
+
+					const checkWalletId = await WhiteList.findOne({ walletId }).exec();
+					if (!checkWalletId) {
+						const newWallet = new WhiteList({ walletId, isActive: true });
+						models.push(newWallet.save());
+					}
 				}
 
-				return res.status(401).json({ status: 'error', message: 'wallet id is not unique' });
+				const data = await Promise.all(models);
+
+				return res.json(
+					data.map((item) => ({
+						id: item._id,
+						walletId: item.walletId,
+						isActive: item.isActive,
+						updatedAt: item.updatedAt,
+					})),
+				);
 			}
+
+			return res.status(401).json({ status: 'error', message: 'wallet id is not unique' });
 		}
 
 		return res.status(500).json({ status: 'error', message: 'something went wrong' });

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Spinner, Button, Table, ButtonGroup, Input, InputGroup } from 'reactstrap'
 import { Layout } from '../../components/Layout/Layout'
+import { WhiteListTag } from '../../components/WhiteListTag/WhiteListTag';
 import { useHttp } from '../../hooks/useHttp';
+import './WhiteList.css';
 
 const WhiteListItem = ({ item: { walletId, isActive }, handleChange, handleRemove, date }) => (
 	<tr>
@@ -22,7 +24,7 @@ export const WhiteList = () => {
 	const { request } = useHttp()
 	const [wl, setWl] = useState(null);
 	const [isFirstLoading, setIsFirstLoading] = useState(true)
-	const [addWalletId, setAddWalletId] = useState("");
+	const [addWalletId, setAddWalletId] = useState([]);
 
 	useEffect(() => {
 		const getWhiteList = async () => {
@@ -73,22 +75,37 @@ export const WhiteList = () => {
 		}
 	}
 
-	const handleChangeAdd = (e) => { setAddWalletId(e.target.value) }
+	const handleChangeAdd = (e) => {
+		const value = e.target.value;
+
+		setAddWalletId(value.split(',').map((item) => item.trim()))
+	}
+
+	const handleRemoveTag = (id) => {
+		setAddWalletId(addWalletId.filter((walletId) => walletId !== id))
+	}
 
 	const handleClickAdd = async () => {
 		try {
 			const response = await request('/api/wl/add', { walletId: addWalletId }, 'POST')
 			if (response.ok) {
 				const data = response.data;
-				const id = data.id;
 
-				delete data.id;
+				const newWalletIds = data.reduce((acc, item) => {
+					const id = item.id;
+					delete item.id;
 
-				setAddWalletId('')
-				setWl({
-					...wl, [id]: {
-						...data
+					acc[id] = {
+						...item
 					}
+
+					return acc;
+				}, {})
+
+				setAddWalletId([])
+				setWl({
+					...wl,
+					...newWalletIds
 				})
 			}
 		} catch (err) {
@@ -104,6 +121,9 @@ export const WhiteList = () => {
 						<Input placeholder="Wallet ID" onChange={handleChangeAdd} value={addWalletId} onKeyUp={(e) => e.key === 'Enter' && handleClickAdd()} />
 						<Button color="primary" onClick={handleClickAdd}>Add</Button>
 					</InputGroup>
+					<div className='whiteListContainer'>
+						{addWalletId && addWalletId.map((walletId) => <WhiteListTag key={walletId} walletId={walletId} handleRemove={handleRemoveTag} />)}
+					</div>
 					<Table>
 						<thead>
 							<tr>

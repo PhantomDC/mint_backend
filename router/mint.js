@@ -38,8 +38,15 @@ mintRouter.get('/get', async (req, res) => {
 			const count = response ? response.mintsCount : 0;
 
 			const paramResponse = await Params.findOne({ paramName: 'maxMintCount' }).exec();
+			const paramPreSaleResponse = await Params.findOne({ paramName: 'preSaleCountMints' }).exec();
+			const userMintsCount = Number(paramResponse.paramValue) - count;
 
-			return res.json({ count: Number(paramResponse.paramValue) - count });
+			const totalMintsCount =
+				userMintsCount < Number(paramPreSaleResponse.paramValue)
+					? userMintsCount
+					: Number(paramPreSaleResponse.paramValue);
+
+			return res.json({ count: totalMintsCount });
 		}
 
 		return res.status(401).json({ status: 'error', message: 'not authorized' });
@@ -60,11 +67,16 @@ mintRouter.post('/add', async (req, res) => {
 		if (isAlive) {
 			if (verified.walletId === walletId) {
 				const prevMints = await Mint.findOne({ walletId }).exec();
+				const prevPreSaleMints = await Params.findOne({ paramName: 'preSaleCountMints' }).exec();
 				await Mint.updateOne({ walletId }, { mintsCount: prevMints.mintsCount + 1, lastUpdateAt: Date.now() });
+				await Params.updateOne({ paramName: 'preSaleCountMints' }, { paramValue: prevPreSaleMints.paramValue - 1 });
 				const count = prevMints ? prevMints.mintsCount + 1 : 0;
 
 				const paramResponse = await Params.findOne({ paramName: 'maxMintCount' }).exec();
-				return res.json({ count: Number(paramResponse.paramValue) - count });
+				return res.json({
+					count: Number(paramResponse.paramValue) - count,
+					presaleTokens: prevPreSaleMints.paramValue - 1,
+				});
 			}
 
 			return res.status(404).json({ status: 'error', message: 'walletId is not signible' });

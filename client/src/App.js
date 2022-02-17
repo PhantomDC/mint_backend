@@ -11,7 +11,7 @@ export const App = () => {
 	return (
 		<AuthContext.Provider value={{ login, isAuthorized }}>
 			{!isLoading && (
-				<BrowserRouter>
+				<BrowserRouter basename="/adminus">
 					<Routes>{routes}</Routes>
 				</BrowserRouter>
 			)}

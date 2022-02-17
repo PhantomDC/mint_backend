@@ -1,0 +1,36 @@
+.whiteListTag {
+    padding: 7px 5px;
+    background-color: #333;
+    border-radius: 4px;
+    border: none;
+    color: #fff;
+    position: relative;
+}
+
+.whiteListTagClose{
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 7px;
+    height: 7px;
+    
+}
+
+.whiteListTagClose::before,
+.whiteListTagClose::after {
+    content: "";
+    width: 100%;
+    height: 1px;
+    background-color: #dc3545;
+    position: absolute;
+    top: 4px;
+    left: 0;
+}
+
+.whiteListTagClose::before{
+    transform: rotate(-45deg)
+}
+
+.whiteListTagClose::after{
+    transform: rotate(45deg)
+}

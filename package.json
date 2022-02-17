@@ -23,6 +23,7 @@
     "mongoose": "^6.1.6"
   },
   "devDependencies": {
+    "mini-css-extract-plugin": "2.4.5",
     "nodemon": "^2.0.15"
   }
 }

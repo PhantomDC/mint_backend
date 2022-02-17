@@ -1,0 +1,8 @@
+.whiteListContainer{
+    display: flex;
+    align-items: flex-start;
+    margin: 15px 0;
+    column-gap: 10px;
+    row-gap: 7px;
+    flex-wrap: wrap;
+}
