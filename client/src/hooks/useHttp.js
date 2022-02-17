@@ -5,7 +5,7 @@ export const useHttp = () => {
 
 	const request = useCallback(async (url, body = null, method = 'GET', headers = {}) => {
 		const token = localStorage.getItem('token');
-		const baseURL = 'http://84.38.182.180:3000';
+		const baseURL = '//84.38.182.180:3000';
 
 		headers['Content-Type'] = 'application/json';
 		headers['Authorization'] = `Bearer ${token}`;
