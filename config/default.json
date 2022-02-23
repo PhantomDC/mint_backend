@@ -1,6 +1,5 @@
 {
-    "dbUser": "phantomdc",
-    "dbPassword": "password32",
+    "dbConnection": "mongodb+srv://phantomdc:password32@cluster0.cpqkv.azure.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
     "backPort": 5000,
     "jwtSecret": "qhWqD6XNs6uIbbNKKNJtMQqQJCAdyPXhLlOMUXDp"
 }

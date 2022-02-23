@@ -22,11 +22,7 @@ if (process.env.NODE_ENV === 'production') {
 app.listen(config.get('backPort'), async (err) => {
 	err ? console.error(err) : console.log('server running on port', config.get('backPort'));
 	try {
-		await mongoose.connect(
-			`mongodb+srv://${config.get('dbUser')}:${config.get(
-				'dbPassword',
-			)}@cluster0.cpqkv.azure.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`,
-		);
+		await mongoose.connect(config.get('dbConnection'));
 		console.log('db connected');
 	} catch (dbErr) {
 		console.error('DB ERROR', dbErr);
