@@ -39,14 +39,38 @@ export const Settings = () => {
 		})
 	}
 
-	const handleUpdate = (id) => async (e) => {
-		const { value } = e.target
-		const param = params[id];
+	const handleChangeCheckbox = (id) => {
+
+		const prevValue = params[id].paramValue
+
+		setParams({
+			...params, [id]: {
+				...params[id],
+				paramValue: !prevValue
+			}
+		})
+
+		handleUpdate(id, !prevValue)
+	}
+
+	const handleUpdate = async (id, value) => {
+		const paramValue = value ?? params[id].paramValue;
 
 		try {
-			await request('/api/params/update', { ...param, paramValue: value }, 'POST')
+			await request('/api/params/update', { ...params[id], paramValue }, 'POST')
 		} catch (err) {
 
+		}
+	}
+
+	const getInputType = (id, item) => {
+		switch (typeof item.paramValue) {
+			case 'string':
+				return <Input value={item.paramValue} onChange={handleChange(id)} onBlur={() => handleUpdate(id)} onKeyPress={(e) => e.key === 'Enter' && handleUpdate(id)} />
+			case 'boolean':
+				return <Input type="checkbox" checked={item.paramValue} onChange={() => handleChangeCheckbox(id)} />
+			default:
+				return <Input value={item.paramValue} onChange={handleChange(id)} onBlur={() => handleUpdate(id)} onKeyPress={(e) => e.key === 'Enter' && handleUpdate(id)} />
 		}
 	}
 
@@ -65,7 +89,7 @@ export const Settings = () => {
 							return (
 								<tr key={id}>
 									<td>{item.paramDescription}</td>
-									<td><Input value={params[id].paramValue} onChange={handleChange(id)} onBlur={handleUpdate(id)} onKeyPress={(e) => e.key === 'Enter' && handleUpdate(id)(e)} /></td>
+									<td>{getInputType(id, item)}</td>
 								</tr>
 							)
 

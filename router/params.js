@@ -3,7 +3,6 @@ const config = require('config');
 const jwt = require('jsonwebtoken');
 const Params = require('../shemas/params.schema');
 const Users = require('../shemas/users.schema');
-const { json } = require('body-parser');
 
 const paramsRouter = Router();
 

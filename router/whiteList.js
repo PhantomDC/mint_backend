@@ -102,7 +102,7 @@ whiteListRouter.post('/add', async (req, res) => {
 whiteListRouter.post('/update', async (req, res) => {
 	const token = req.headers.authorization.split('Bearer ')[1].trim();
 	const jwtSecret = config.get('jwtSecret');
-	const { id, isActive } = req.body;
+	const { id, isActive, isAll = false } = req.body;
 
 	try {
 		const verified = jwt.verify(token, jwtSecret);
@@ -111,11 +111,17 @@ whiteListRouter.post('/update', async (req, res) => {
 		if (isAlive) {
 			const user = await Users.findOne({ _id: verified.id }).exec();
 
-			if (user.mode === 'admin' && user.active && id) {
-				await WhiteList.findByIdAndUpdate(id, { isActive, updatedAt: Date.now() });
-				const response = await getWhiteList();
+			if (user.mode === 'admin' && user.active) {
+				if (id) {
+					await WhiteList.findByIdAndUpdate(id, { isActive, updatedAt: Date.now() });
+					const response = await getWhiteList();
 
-				return res.json(response);
+					return res.json(response);
+				} else if (isAll) {
+					await WhiteList.updateMany({}, { isActive, updatedAt: Date.now() });
+					const response = await getWhiteList();
+					return res.json(response);
+				}
 			}
 		}
 

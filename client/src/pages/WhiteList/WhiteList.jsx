@@ -1,23 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Spinner, Button, Table, ButtonGroup, Input, InputGroup } from 'reactstrap'
+import { Spinner, Button, Table, Input, InputGroup } from 'reactstrap'
 import { Layout } from '../../components/Layout/Layout'
 import { WhiteListTag } from '../../components/WhiteListTag/WhiteListTag';
+import { WhiteListItem } from '../../components/WhiteListItem/WhiteListItem'
+import { SwitchButton } from '../../components/SwitchButton/SwitchButton'
 import { useHttp } from '../../hooks/useHttp';
 import './WhiteList.css';
-
-const WhiteListItem = ({ item: { walletId, isActive }, handleChange, handleRemove, date }) => (
-	<tr>
-		<td>{walletId}</td>
-		<td>
-			<ButtonGroup>
-				<Button color={isActive ? 'primary' : 'secondary'} onClick={() => handleChange(true)} active={isActive}>Enable</Button>
-				<Button color={isActive ? 'secondary' : 'danger'} onClick={() => handleChange(false)} active={!isActive}>Disable</Button>
-			</ButtonGroup>
-		</td>
-		<td>{date}</td>
-		<td><Button color="danger" onClick={handleRemove}>Remove</Button></td>
-	</tr>
-)
 
 export const WhiteList = () => {
 
@@ -40,16 +28,18 @@ export const WhiteList = () => {
 	}, [request])
 
 	const handleChange = (id) => async (isActive) => {
-		setWl({
-			...wl, [id]: {
-				...wl[id],
-				isActive,
-			}
-		})
+		if (id) {
+			setWl({
+				...wl, [id]: {
+					...wl[id],
+					isActive,
+				}
+			})
+		}
 
 
 		try {
-			const response = await request('/api/wl/update', { id, isActive }, 'POST')
+			const response = await request('/api/wl/update', { id, isActive, isAll: !id }, 'POST')
 
 			if (response.ok) {
 				setWl(response.data)
@@ -113,6 +103,14 @@ export const WhiteList = () => {
 		}
 	}
 
+	const getIsActiveWhiteList = () => {
+		if (wl) {
+			return Object.values(wl).some((item) => item.isActive)
+		}
+
+		return false;
+	}
+
 	return (
 		<Layout title="White List">
 			{isFirstLoading ? <Spinner /> : (
@@ -128,7 +126,7 @@ export const WhiteList = () => {
 						<thead>
 							<tr>
 								<th>Wallet ID</th>
-								<th>Active</th>
+								<th><SwitchButton isActive={getIsActiveWhiteList()} handleChange={handleChange(null)} /></th>
 								<th>Last updated</th>
 								<th></th>
 							</tr>

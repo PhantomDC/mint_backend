@@ -67,15 +67,19 @@ mintRouter.post('/add', async (req, res) => {
 		if (isAlive) {
 			if (verified.walletId === walletId) {
 				const prevMints = await Mint.findOne({ walletId }).exec();
-				const prevPreSaleMints = await Params.findOne({ paramName: 'preSaleCountMints' }).exec();
+
 				await Mint.updateOne({ walletId }, { mintsCount: prevMints.mintsCount + 1, lastUpdateAt: Date.now() });
-				await Params.updateOne({ paramName: 'preSaleCountMints' }, { paramValue: prevPreSaleMints.paramValue - 1 });
 				const count = prevMints ? prevMints.mintsCount + 1 : 0;
 
 				const paramResponse = await Params.findOne({ paramName: 'maxMintCount' }).exec();
+				const prevPreSaleMints = await Params.findOne({ paramName: 'preSaleCountMints' }).exec();
+
+				const nextPrevPreSaleMints = Number(prevPreSaleMints.paramValue) - 1;
+				await Params.updateOne({ paramName: 'preSaleCountMints' }, { paramValue: nextPrevPreSaleMints });
+
 				return res.json({
 					count: Number(paramResponse.paramValue) - count,
-					presaleTokens: prevPreSaleMints.paramValue - 1,
+					presaleTokens: nextPrevPreSaleMints,
 				});
 			}
 
@@ -87,7 +91,12 @@ mintRouter.post('/add', async (req, res) => {
 		const mint = new Mint({ walletId, mintsCount: 1, lastUpdateAt: Date.now() });
 		try {
 			await mint.save();
-			res.json({ count: 1 });
+			const paramResponse = await Params.findOne({ paramName: 'maxMintCount' }).exec();
+			const prevPreSaleMints = await Params.findOne({ paramName: 'preSaleCountMints' }).exec();
+			const nextPrevPreSaleMints = Number(prevPreSaleMints.paramValue) - 1;
+
+			await Params.updateOne({ paramName: 'preSaleCountMints' }, { paramValue: nextPrevPreSaleMints });
+			res.json({ count: Number(paramResponse.paramValue) - 1, presaleTokens: nextPrevPreSaleMints });
 		} catch (err) {
 			res.json({ status: 'error', message: 'something went wrong' });
 		}
