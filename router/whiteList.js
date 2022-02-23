@@ -36,8 +36,15 @@ whiteListRouter.post('/has', async (req, res) => {
 
 		if (isAlive) {
 			if (verified.walletId === walletId) {
-				const candidate = await WhiteList.findOne({ walletId, isActive: true }).exec();
+				const isPublicSale = await Params.findOne({ paramName: 'isPublicSale' }).exec();
 				const preSaleTokens = await Params.findOne({ paramName: 'preSaleCountMints' }).exec();
+
+				if (isPublicSale.paramValue) {
+					return res.json({ walletId, status: 'ok', presaleTokens: Number(preSaleTokens.paramValue) });
+				}
+
+				const candidate = await WhiteList.findOne({ walletId, isActive: true }).exec();
+
 				if (candidate) {
 					return res.json({ walletId, status: 'ok', presaleTokens: Number(preSaleTokens.paramValue) });
 				}
